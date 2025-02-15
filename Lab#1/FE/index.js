@@ -19,6 +19,8 @@ function fetchEmployees() {
         const deleteButton = document.createElement('button');
         deleteButton.textContent = 'Delete';
         deleteButton.classList.add('btn', 'btn-danger', 'btn-sm');
+        deleteButton.dataset.id = item.id; // Store ID in data attribute
+        deleteButton.addEventListener('click', deleteEmployee); // Add listener here
         deleteCell.appendChild(deleteButton);
 
         row.appendChild(deleteCell)
@@ -29,24 +31,51 @@ function fetchEmployees() {
     .catch(error => console.error(error))
 }
 
-// TODO
-// add event listener to submit button
+//TODO Add event listener to submit button
+const employeeForm = document.getElementById('employeeForm');
+employeeForm.addEventListener('submit', createEmployee);
 
-// TODO
-// add event listener to delete button
 
-// TODO
-function createEmployee (){
-  // get data from input field
-  // send data to BE
-  // call fetchEmployees
+function createEmployee(event) {
+  event.preventDefault();
+
+  const nameInput = document.getElementById('name');
+  const idInput = document.getElementById('id');
+  const name = nameInput.value;
+  const id = idInput.value;
+
+  fetch('http://localhost:3000/api/v1/employee', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ name, id })
+  })
+    .then(response => response.json())
+    .then(data => {
+      nameInput.value = '';
+      idInput.value = '';
+      fetchEmployees(); 
+    })
+    .catch(error => console.error('Error creating employee:', error));
 }
 
-// TODO
-function deleteEmployee (){
-  // get id
-  // send id to BE
-  // call fetchEmployees
+
+function deleteEmployee(event) {
+  const button = event.target;
+  const id = button.dataset.id; 
+
+  fetch(`http://localhost:3000/api/v1/employee/${id}`, {
+    method: 'DELETE'
+  })
+    .then(response => {
+      if (response.ok) {
+        fetchEmployees(); 
+      } else {
+        console.error('Error deleting employee:', response.status);
+      }
+    })
+    .catch(error => console.error('Error deleting employee:', error));
 }
 
 fetchEmployees()
